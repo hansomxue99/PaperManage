@@ -1,0 +1,234 @@
+<!-- extends表明此页面继承自 base.html 文件 -->
+{% extends "base.html" %}
+{% load static %}
+<!-- 写入 base.html 中定义的 title -->
+{% block title %} 写文章 {% endblock title %}
+<!-- 写入 base.html 中定义的 content -->
+{% block content %}
+    <!-- 写文章表单 -->
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <br>
+                <!-- 提交文章的表单 -->
+                <form method="post" action=".">
+                    <!-- Django中需要POST数据的地方都必须有csrf_token -->
+                    {% csrf_token %}
+                    <!-- 文章标题 -->
+                    <div class="form-group">
+                        <!-- 标签 -->
+                        <label for="title">文章标题</label>
+                        <!-- 文本框 -->
+                        <input type="text" class="form-control" id="title" name="title">
+                    </div>
+
+                    <!-- 作者团队 -->
+                    <div class="form-group">
+                        <!-- 标签 -->
+                        <label for="paper_author">作者/团队</label>
+                        <!-- 文本框 -->
+                        <input type="text" class="form-control form-control col-8" id="paper_author" name="paper_author"
+                        >
+                    </div>
+
+                    <!-- 文章出处 -->
+                    <div class="form-group">
+                        <!-- 标签 -->
+                        <label for="source">文章出处</label>
+                        <!-- 文本框 -->
+                        <input type="text" class="form-control form-control col-8" id="source" name="source"
+                        >
+                    </div>
+
+                    <!-- 参考文献 -->
+                    <div class="form-group">
+                        <!-- 标签 -->
+                        <label for="reference">参考文献</label>
+                        <!-- 文本框 -->
+                        <textarea type="text"
+                                  class="form-control form-control col-8"
+                                  id="reference"
+                                  name="reference"
+                                  rows="3"
+                        ></textarea>
+                    </div>
+
+                    <!-- bitex -->
+                    <div>
+                        <label for="bitex">Bitex自动转换</label>
+                        <button type="button" class="btn btn-primary" size="10" onclick="convertText()">转换</button>
+                        <br>
+                        <textarea id="inputText"
+                                  class="form-control form-control col-8"
+                                  name="bitex" rows="5"
+                                  cols="50"
+                                  placeholder="在这里输入..."
+                        ></textarea>
+                    </div>
+
+                    <!-- 文章标签 -->
+                    <div class="form-group">
+                        <label for="tags">标签</label>
+                        <input type="text"
+                               class="form-control col-3"
+                               id="tags"
+                               name="tags"
+                        >
+                    </div>
+
+                    <!-- 文章正文 -->
+                    <div class="form-group">
+                        <label for="body">文章正文</label>
+                        <!-- 文本区域 -->
+                        <textarea type="text" class="form-control" id="body" name="body" rows="12"></textarea>
+                    </div>
+                    <!-- 提交按钮 -->
+                    <button type="submit" class="btn btn-primary">完成</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function isMatch(content, target) {
+            const match = content.match(target);
+            if (match !== null) {
+                return match[1];
+            }
+            return null;
+        }
+
+        function parseConference(content) {
+            // parse title
+            const title = isMatch(content, /title={([^}]+)}/);
+            if (title === null) {
+                throw new Error("No title found.");
+            }
+
+            // parse authors
+            let authors = isMatch(content, /author={([^}]+)}/);
+            if (authors === null) {
+                throw new Error("No authors found.");
+            }
+            authors = authors.split(' and ');
+            let newAuthors = "";
+            for (let i = 0; i < authors.length; i++) {
+                if (i > 2) {
+                    newAuthors += 'et al.';
+                    break;
+                }
+                const author = authors[i].split(' ');
+                const formattedAuthor = author[0] + ' ' + author[1][0];
+                newAuthors += formattedAuthor;
+                if (i === authors.length - 1) {
+                    newAuthors += '.';
+                } else {
+                    newAuthors += ', ';
+                }
+            }
+
+            // parse booktitle
+            const booktitle = isMatch(content, /booktitle={([^}]+)}/);
+            if (booktitle === null) {
+                throw new Error("No book title.");
+            }
+
+            // parse year
+            const year = isMatch(content, /year={([^}]+)}/);
+            if (year === null) {
+                throw new Error("No year found.");
+            }
+
+            // parse pages
+            const pages = isMatch(content, /pages={([^}]+)}/);
+
+            // / author, "title," in booktitle, year, pp.(pages). /
+            const reference = `${newAuthors} "${title}," in ${booktitle}, ${year}${pages ? `, pp. ${pages}` : ""}.`;
+
+            return [reference, title, newAuthors, booktitle + ' ' + year];
+        }
+
+        function parseJournal(content) {
+            // parse title
+            const title = isMatch(content, /title={([^}]+)}/);
+            if (title === null) {
+                throw new Error("No title found.");
+            }
+
+            // parse authors
+            let authors = isMatch(content, /author={([^}]+)}/);
+            if (authors === null) {
+                throw new Error("No authors found.");
+            }
+            authors = authors.split(' and ');
+            let newAuthors = "";
+            for (let i = 0; i < authors.length; i++) {
+                if (i > 2) {
+                    newAuthors += 'et al.';
+                    break;
+                }
+                const author = authors[i].split(' ');
+                const formattedAuthor = author[0] + ' ' + author[1][0];
+                newAuthors += formattedAuthor;
+                if (i === authors.length - 1) {
+                    newAuthors += '.';
+                } else {
+                    newAuthors += ', ';
+                }
+            }
+
+            // parse journal
+            const journal = isMatch(content, /journal={([^}]+)}/);
+            if (journal === null) {
+                throw new Error("No book title.");
+            }
+
+            // parse pages
+            const year = isMatch(content, /year={([^}]+)}/);
+            if (year === null) {
+                throw new Error("No year found.");
+            }
+
+            // parse pages
+            const pages = isMatch(content, /pages={([^}]+)}/);
+
+            // parse volume
+            const volume = isMatch(content, /volume={([^}]+)}/);
+
+            // parse number
+            const number = isMatch(content, /number={([^}]+)}/);
+
+            // /author, "title," in journal, vol. (volume), no. (number), pp. (pages), year./
+            const reference = `${newAuthors} "${title}," in ${journal}${volume ? `, vol. ${volume}` : ""}${number ? `, no. ${number}` : ""}${pages ? `, pp. ${pages}` : ""}, ${year}.`;
+
+            return [reference, title, newAuthors, journal + ' ' + year];
+        }
+
+        function parseBitex(content) {
+            const conferenceMatch = content.match(/@inproceedings{/);
+            if (conferenceMatch !== null) {
+                return parseConference(content);
+            }
+            const journalMatch = content.match(/@article{/);
+            if (journalMatch !== null) {
+                return parseJournal(content);
+            }
+
+            if (conferenceMatch === null && journalMatch === null) {
+                throw new Error("Neither conference nor journal, check bitex content.");
+            }
+        }
+
+
+        function convertText() {
+            // 获取输入文本
+            var inputText = document.getElementById('inputText').value;
+            var converted_text = parseBitex(inputText);
+            let [ref, title, authors, source] = converted_text
+            document.getElementById('reference').value = ref;
+            document.getElementById('title').value = title;
+            document.getElementById('paper_author').value = authors;
+            document.getElementById('source').value = source;
+        }
+    </script>
+{% endblock content %}
