@@ -58,6 +58,35 @@
                         ></textarea>
                     </div>
 
+
+                    <div>
+                        <br>
+                        <label for="pdf_file">上传pdf</label>
+                        <br>
+                        <input type="file"
+                               class="form-control-file col-2"
+                               name="pdf_file"
+                               id="pdf_file"
+                               accept=".pdf"
+                               onchange="handleUpload()"
+                               style="padding-left: 0; display: inline-block"
+                        >
+                        <button type="button" class="btn btn-primary" size="3" id="pdf_link"
+                                onclick="handleFilePreview()" style="display: none; cursor: pointer">
+                            预览
+                        </button>
+                        {% if article.pdf_file == '' %}
+
+                        {% else %}
+                            <a href="{{ article.pdf_file.url }}" class="btn btn-primary" style="cursor: pointer"
+                               id="preview_link">预览</a>
+                            <label id="preview_name"> {{ article.pdf_file.name }}</label>
+                        {% endif %}
+                        <br>
+                        <br>
+                    </div>
+
+
                     <!-- 文章标签-->
                     <div class="form-group">
                         <label for="tags">标签</label>
@@ -217,6 +246,39 @@
             document.getElementById('title').value = title;
             document.getElementById('paper_author').value = authors;
             document.getElementById('source').value = source;
+        }
+
+        function handleUpload() {
+            const fileInput = document.getElementById('pdf_file');
+            const file = fileInput.files[0];
+            const pdfLink = document.getElementById('pdf_link');
+            const previewLink = document.getElementById('preview_link');
+            const previewName = document.getElementById('preview_name');
+            if (file) {
+                pdfLink.style.display = 'inline-block';
+                previewLink.style.display = 'none';
+                previewName.style.display = 'none';
+            }
+        }
+
+        function handleFilePreview() {
+            const fileInput = document.getElementById('pdf_file');
+            const file = fileInput.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    const blob = new Blob([new Uint8Array(e.target.result)], {type: 'application/pdf'});
+                    const url = URL.createObjectURL(blob);
+
+                    window.open(url, '_blank');
+
+                    URL.revokeObjectURL(url);
+                };
+
+                reader.readAsArrayBuffer(file);
+            }
         }
     </script>
 {% endblock content %}

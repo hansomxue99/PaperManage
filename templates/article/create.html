@@ -11,7 +11,7 @@
             <div class="col-12">
                 <br>
                 <!-- 提交文章的表单 -->
-                <form method="post" action=".">
+                <form method="post" action="." enctype="multipart/form-data">
                     <!-- Django中需要POST数据的地方都必须有csrf_token -->
                     {% csrf_token %}
                     <!-- 文章标题 -->
@@ -56,7 +56,7 @@
                     <!-- bitex -->
                     <div>
                         <label for="bitex">Bitex自动转换</label>
-                        <button type="button" class="btn btn-primary" size="10" onclick="convertText()">转换</button>
+                        <button type="button" class="btn btn-primary" size="8" onclick="convertText()">转换</button>
                         <br>
                         <textarea id="inputText"
                                   class="form-control form-control col-8"
@@ -65,6 +65,26 @@
                                   placeholder="在这里输入..."
                         ></textarea>
                     </div>
+
+                    <div>
+                        <br>
+                        <label for="pdf_file">上传pdf</label>
+                        <br>
+                        <input type="file"
+                               class="form-control-file col-2"
+                               name="pdf_file"
+                               id="pdf_file"
+                               accept=".pdf"
+                               onchange="handleUpload()"
+                               style="padding-left: 0; display: inline-block"
+                        >
+                        <button  type="button" class="btn btn-primary" size="3" id="pdf_link" onclick="handleFilePreview()" style="display: none; cursor: pointer">
+                            预览
+                        </button>
+                        <br>
+                        <br>
+                    </div>
+
 
                     <!-- 文章标签 -->
                     <div class="form-group">
@@ -229,6 +249,35 @@
             document.getElementById('title').value = title;
             document.getElementById('paper_author').value = authors;
             document.getElementById('source').value = source;
+        }
+
+        function handleUpload() {
+            const fileInput = document.getElementById('pdf_file');
+            const file = fileInput.files[0];
+            const pdfLink = document.getElementById('pdf_link');
+            if (file) {
+                pdfLink.style.display = 'inline-block';
+            }
+        }
+
+        function handleFilePreview() {
+            const fileInput = document.getElementById('pdf_file');
+            const file = fileInput.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    const blob = new Blob([new Uint8Array(e.target.result)], {type: 'application/pdf'});
+                    const url = URL.createObjectURL(blob);
+
+                    window.open(url, '_blank');
+
+                    URL.revokeObjectURL(url);
+                };
+
+                reader.readAsArrayBuffer(file);
+            }
         }
     </script>
 {% endblock content %}

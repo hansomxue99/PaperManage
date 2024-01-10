@@ -25,6 +25,14 @@
 
                 <!-- 文章的基本信息 -->
                 <div class="col-12">
+                    <p>文献PDF:
+                        {% if article.pdf_file != '' %}
+                            <a href="{{ article.pdf_file.url }}" class="btn btn-primary" style="cursor: pointer;"
+                               id="preview_link">预览</a>
+                        {% else %}
+                            ~
+                        {% endif %}
+                    </p>
                     <p>作者/团队: {{ article.paper_author|safe }}</p>
                     <p>文章出处: {{ article.source|safe }}</p>
                     <p>参考文献: {{ article.reference|safe }}</p>

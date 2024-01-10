@@ -60,8 +60,7 @@ def article_detail(request, id):
 @login_required(login_url='/userprofile/login/')
 def article_create(request):
     if request.method == "POST":
-        article_post_form = PaperInfoForm(data=request.POST)
-        print(article_post_form)
+        article_post_form = PaperInfoForm(data=request.POST, files=request.FILES)
         if article_post_form.is_valid():
             new_article = article_post_form.save(commit=False)
             new_article.author = User.objects.get(id=request.user.id)
@@ -97,13 +96,15 @@ def article_update(request, id):
         return HttpResponse("抱歉，你无权修改这篇文章。")
 
     if request.method == "POST":
-        article_post_form = PaperInfoForm(data=request.POST)
+        article_post_form = PaperInfoForm(data=request.POST, files=request.FILES)
         if article_post_form.is_valid():
             article.title = request.POST['title']
             article.body = request.POST['body']
             article.paper_author = request.POST['paper_author']
             article.source = request.POST['source']
             article.reference = request.POST['reference']
+            if 'pdf_file' in request.FILES:
+                article.pdf_file = request.FILES['pdf_file']
             article.tags.set(request.POST.get('tags').split(','), clear=True)
             article.save()
             return redirect("article:article_detail", id=id)

@@ -9,6 +9,7 @@ class PaperInfo(models.Model):
     paper_author = models.CharField(max_length=100)  # 文章的作者/团队
     source = models.CharField(max_length=100)  # 文章的来源：期刊or会议
     reference = models.CharField(max_length=500, blank=True)  # 参考文献
+    pdf_file = models.FileField(upload_to='pdfFiles/%Y%m%d/', blank=True)  # pdf
     tags = TaggableManager(blank=True)
     body = models.TextField()
     created = models.DateTimeField(default=timezone.now)
