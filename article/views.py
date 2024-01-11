@@ -7,6 +7,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
+import os
+from paperpower import settings
 
 
 # 视图函数
@@ -104,6 +106,13 @@ def article_update(request, id):
             article.source = request.POST['source']
             article.reference = request.POST['reference']
             if 'pdf_file' in request.FILES:
+                if article.pdf_file.name != '':
+                    file_name = article.pdf_file.name
+                    d = settings.MEDIA_ROOT
+                    file_path = os.path.join(d, file_name)
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                    article.pdf_file.delete()
                 article.pdf_file = request.FILES['pdf_file']
             article.tags.set(request.POST.get('tags').split(','), clear=True)
             article.save()
@@ -120,3 +129,17 @@ def article_update(request, id):
         }
         # 将响应返回到模板中
         return render(request, 'article/update.html', context)
+
+
+from django.conf import settings
+
+
+@login_required(login_url='/userprofile/login/')
+def file_delete(request, id):
+    article = PaperInfo.objects.get(id=id)
+    file_path = article.pdf_file.name
+    d = settings.MEDIA_ROOT
+    os.remove(os.path.join(d, file_path))
+    article.pdf_file.delete()
+    article.save()
+    return redirect("article:article_update", id=id)

@@ -80,6 +80,12 @@
                         {% else %}
                             <a href="{{ article.pdf_file.url }}" class="btn btn-primary" style="cursor: pointer"
                                id="preview_link">预览</a>
+                            <a href="{% url 'article:file_delete' article.id %}"
+                               class="btn btn-primary"
+                               style="cursor: pointer"
+                               id="file_delete"
+                               onclick="confirm_file_delete()"
+                            >删除</a>
                             <label id="preview_name"> {{ article.pdf_file.name }}</label>
                         {% endif %}
                         <br>
@@ -254,10 +260,12 @@
             const pdfLink = document.getElementById('pdf_link');
             const previewLink = document.getElementById('preview_link');
             const previewName = document.getElementById('preview_name');
+            const pdfDelete = document.getElementById('file_delete');
             if (file) {
                 pdfLink.style.display = 'inline-block';
                 previewLink.style.display = 'none';
                 previewName.style.display = 'none';
+                pdfDelete.style.display = 'none';
             }
         }
 
@@ -279,6 +287,15 @@
 
                 reader.readAsArrayBuffer(file);
             }
+        }
+
+        function confirm_file_delete() {
+            const r = confirm("确定删除这篇文献PDF吗？");
+            if (r) {
+                alert("删除成功");
+                return true;
+            }
+            return false;
         }
     </script>
 {% endblock content %}
